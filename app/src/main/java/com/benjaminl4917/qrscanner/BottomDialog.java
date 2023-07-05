@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -21,24 +22,27 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class BottomDialog extends BottomSheetDialogFragment {
-    private TextView title, link, btn_visit;
+    private TextView title, link, visitBtn, shareBtn;
 
     private ImageView close;
-    private String fetchURL;
+    private String fetchURL, fetchTitle;
+
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.bottom_dialog, container, false);
 
-        title = view.findViewById(R.id.txt_title);
-        link = view.findViewById(R.id.txt_link);
-        btn_visit = view.findViewById(R.id.visit);
+        title = view.findViewById(R.id.titleTxt);
+        link = view.findViewById(R.id.linkTxt);
+        visitBtn = view.findViewById(R.id.visit);
         close = view.findViewById(R.id.close);
+        shareBtn = view.findViewById(R.id.shareLink);
 
-        title.setText(fetchURL);
+        link.setText(fetchURL);
+        title.setText(fetchTitle);
 
-        btn_visit.setOnClickListener(new View.OnClickListener() {
+        visitBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent("android.intent.action.VIEW");
@@ -54,17 +58,46 @@ public class BottomDialog extends BottomSheetDialogFragment {
                 dismiss();
             }
         });
+
+
+        shareBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                shareData();
+            }
+        });
         return view;
     }
 
-    public void fetchurl(String url){
+    public void fetchURL(String url){
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
         executorService.execute(new Runnable() {
             @Override
             public void run() {
                 fetchURL = url;
             }
         });
+    }
+
+    public void fetchTitle(String title){
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                fetchTitle = title;
+            }
+        });
+    }
+
+    public void shareData(){
+        Intent i = new Intent(Intent.ACTION_SEND);
+
+        i.setType("text/plain");
+
+        i.putExtra(Intent.EXTRA_TEXT, "QR Code Link: " + fetchURL);
+
+
+        startActivity(Intent.createChooser(i,"Choose a platform"));
+
     }
 }
